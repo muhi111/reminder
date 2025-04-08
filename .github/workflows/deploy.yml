@@ -1,0 +1,43 @@
+name: Deploy to GCE
+
+on:
+  # push:
+  #   # branches:
+  #   #   - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Go Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.2
+
+      - name: Build
+        run: |
+          make build
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Copy Binary to GCE
+        run: |
+          gcloud compute scp main ${{ secrets.GCP_INSTANCE_NAME }}:/usr/local/bin/reminder --zone=${{ secrets.GCP_INSTANCE_ZONE }} --quiet
+
+      - name: Restart Application
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="sudo systemctl restart reminder.service"
