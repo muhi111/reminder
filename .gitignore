@@ -23,7 +23,8 @@ tmp/
 .idea
 
 # .env file
-.env
+.env*
+!.env
 
 # Project build
 main
@@ -32,3 +33,5 @@ main
 # OS X generated file
 .DS_Store
 
+# Sqlite3 database
+*.db
