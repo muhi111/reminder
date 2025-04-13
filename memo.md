@@ -18,6 +18,7 @@
 Description=reminder daemon
 
 [Service]
+User=hoge
 WorkingDirectory=/home/hoge
 ExecStart=/home/hoge/reminder
 StandardOutput=append:/home/hoge/log.txt
