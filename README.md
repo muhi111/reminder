@@ -23,6 +23,7 @@
 - ngrok
 - dotenvx
 - air
+- act
 
 ### デプロイ
 - Github Actions
