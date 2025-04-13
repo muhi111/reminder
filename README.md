@@ -1,34 +1,62 @@
-# Project reminder
+# Reminder Application
 
-One Paragraph of project description goes here
+## 概要
 
-## Getting Started
+このアプリケーションは、LINE Messaging API を利用したリマインダーボットです。ユーザーは LINE を通じてリマインダーを設定でき、指定した時間に通知を受け取ることができます。
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+## 機能
 
-## MakeFile
+*   LINE メッセージによるリマインダーの登録・一覧表示・削除
+*   指定時刻に LINE メッセージでリマインダー通知を送信
 
-Run build make command with tests
-```bash
-make all
-```
+## 使用技術
 
-Build the application
+### 言語&フレームワーク
+- Go
+- Echo
+- GORM
+
+### データベース
+- SQLite
+
+### 開発ツール
+- ngrok
+- dotenvx
+- air
+
+### デプロイ
+- Github Actions
+- GCP Compute Engine
+- Cloudflare
+
+## 実行方法
+
+### ビルド
+
 ```bash
 make build
 ```
+これにより、`main` という名前の実行ファイルが生成されます。
 
-Run the application
+### 実行
+
+`dotenvx` がインストールされている必要があります。
+
 ```bash
 make run
 ```
+`.env` ファイルが読み込まれ、アプリケーションが起動します。
 
-Live reload the application:
+### 開発 (ライブリロード)
+
+`dotenvx` と `air` がインストールされている必要があります。`ngrok` と `.env` の `DOMAIN` 設定も推奨されます。
+
 ```bash
 make watch
 ```
+`air` がファイルの変更を監視し、自動的にアプリケーションを再起動します。`ngrok` がインストールされ、`DOMAIN` が設定されていれば、外部からのアクセス用トンネルも起動します。
 
-Clean up binary from the last build:
-```bash
-make clean
-```
+## API エンドポイント
+
+*   `GET /`: 動作確認用エンドポイント。 "Hello, World!" を返します。
+*   `POST /callback`: LINE Messaging API Webhook エンドポイント。LINE プラットフォームからのイベントを受け取ります。
