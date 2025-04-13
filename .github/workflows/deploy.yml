@@ -24,6 +24,17 @@ jobs:
         run: |
           make build
 
+      - name: Set up dotenvx
+        run: curl -sfS https://dotenvx.sh/install.sh | sh
+
+      - name: Decrypt .env
+        run: |
+          DOTENV_PRIVATE_KEY=${{ secrets.DOTENV_PRIVATE_KEY }} dotenvx decrypt .env
+
+      - name: Change ports
+        run: |
+          sed -i 's/8080/80/g' .env
+
       - name: Set up Google Cloud SDK
         uses: google-github-actions/auth@v2
         with:
@@ -33,11 +44,21 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
             project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Copy Binary to GCE
+      
+      - name: Stop Application
         run: |
-          gcloud compute scp main ${{ secrets.GCP_INSTANCE_NAME }}:/usr/local/bin/reminder --zone=${{ secrets.GCP_INSTANCE_ZONE }} --quiet
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="sudo systemctl stop reminder.service"
 
-      - name: Restart Application
+      - name: Copy Binary and Environment Variables to GCE
         run: |
-          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="sudo systemctl restart reminder.service"
+          gcloud compute scp main ${{ secrets.GCP_INSTANCE_NAME }}:~/reminder --zone=${{ secrets.GCP_INSTANCE_ZONE }} --quiet
+          gcloud compute scp .env ${{ secrets.GCP_INSTANCE_NAME }}:~/.env --zone=${{ secrets.GCP_INSTANCE_ZONE }} --quiet
+
+      - name: Set up Permissions
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="chmod 755 ~/reminder"
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="sudo /sbin/setcap 'cap_net_bind_service=+ep' ~/reminder"
+
+      - name: Start Application
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_INSTANCE_NAME }} --zone=${{ secrets.GCP_INSTANCE_ZONE }} --command="sudo systemctl start reminder.service"
